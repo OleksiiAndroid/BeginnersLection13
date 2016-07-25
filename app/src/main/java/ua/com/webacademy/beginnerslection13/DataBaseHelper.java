@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
     public DataBaseHelper(Context context) {
-        super(context, "MyDB12.db", null, 1);
+        super(context, "MyDB13.db", null, 1);
     }
 
     @Override
@@ -90,7 +90,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     student.id = cursor.getLong(cursor.getColumnIndex(Student.COLUMN_ID));
                     student.FirstName = cursor.getString(cursor.getColumnIndex(Student.COLUMN_FIRST_NAME));
                     student.LastName = cursor.getString(cursor.getColumnIndex(Student.COLUMN_LAST_NAME));
-                    student.id = cursor.getLong(cursor.getColumnIndex(Student.COLUMN_AGE));
+                    student.Age = cursor.getLong(cursor.getColumnIndex(Student.COLUMN_AGE));
 
                     students.add(student);
 

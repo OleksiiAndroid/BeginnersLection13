@@ -1,8 +1,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                tools:context=".MainActivity">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -20,28 +20,28 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="OnClick"
-                android:text="Init loader"/>
+                android:text="Init loader" />
 
             <Button
                 android:id="@+id/button2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="OnClick"
-                android:text="Restart loader"/>
+                android:text="Restart loader" />
 
             <Button
                 android:id="@+id/button3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="OnClick"
-                android:text="Load contacts"/>
+                android:text="Load contacts" />
 
             <Button
                 android:id="@+id/button4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="OnClick"
-                android:text="Load students"/>
+                android:text="Load students" />
         </LinearLayout>
     </ScrollView>
 
