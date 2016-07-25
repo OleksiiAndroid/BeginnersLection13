@@ -6,8 +6,10 @@ import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 public class StudentsProvider extends ContentProvider {
 
@@ -18,6 +20,10 @@ public class StudentsProvider extends ContentProvider {
     static final String STUDENTS_PATH = "students";
 
     public static final Uri STUDENT_URI = Uri.parse("content://" + AUTHORITY + "/" + STUDENTS_PATH);
+
+    static final String STUDENT_CONTENT_TYPE = "vnd.android.cursor.dir/vnd." + AUTHORITY + "." + STUDENTS_PATH;
+    static final String STUDENT_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd." + AUTHORITY + "." + STUDENTS_PATH;
+
 
     static final int URI_STUDENTS = 1;
     static final int URI_STUDENTS_ID = 2;
@@ -39,67 +45,96 @@ public class StudentsProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Cursor query(Uri uri, String[] strings, String s, String[] strings1, String s1) {
+    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         db = mDBHelper.getWritableDatabase();
-        Cursor cursor = null;
+
+        SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
+        queryBuilder.setTables(Student.TABLE_NAME);
 
         switch (uriMatcher.match(uri)) {
-            case URI_STUDENTS:
-                cursor = db.query("Students", null, null, null, null, null, null);
-                break;
             case URI_STUDENTS_ID:
-                String id = uri.getLastPathSegment();
-                cursor = db.query("Students", null, "_id=?", new String[]{String.valueOf(id)}, null, null, null);
+                queryBuilder.appendWhere(Student.COLUMN_ID + "=" + uri.getLastPathSegment());
                 break;
         }
+
+        Cursor cursor = queryBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder);
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
 
         return cursor;
     }
 
     @Nullable
     @Override
-    public Uri insert(Uri uri, ContentValues contentValues) {
+    public Uri insert(Uri uri, ContentValues values) {
         db = mDBHelper.getWritableDatabase();
         long id = 0;
 
-        if (uriMatcher.match(uri) == URI_STUDENTS) {
-            id = db.insert("Students", null, contentValues);
+        switch (uriMatcher.match(uri)) {
+            case URI_STUDENTS:
+                id = db.insert(Student.TABLE_NAME, null, values);
+                break;
         }
 
-        Uri resultUri = ContentUris.withAppendedId(STUDENT_URI, id);
-
-        return resultUri;
+        getContext().getContentResolver().notifyChange(uri, null);
+        return ContentUris.withAppendedId(STUDENT_URI, id);
     }
 
     @Override
-    public int delete(Uri uri, String s, String[] strings) {
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
         db = mDBHelper.getWritableDatabase();
+        int count = 0;
 
-        if (uriMatcher.match(uri) == URI_STUDENTS_ID) {
-            s = s + " AND _id=" + uri.getLastPathSegment();
+        switch (uriMatcher.match(uri)) {
+            case URI_STUDENTS:
+                count = db.delete(Student.TABLE_NAME, selection, selectionArgs);
+                break;
+            case URI_STUDENTS_ID:
+                String id = uri.getLastPathSegment();
+                if (selection.isEmpty()) {
+                    count = db.delete(Student.TABLE_NAME, Student.COLUMN_ID + "=" + id, null);
+                } else {
+                    count = db.delete(Student.TABLE_NAME, Student.COLUMN_ID + "=" + id + " and " + selection, selectionArgs);
+                }
+                break;
         }
 
-        int count = db.delete("Students", s, strings);
-
+        getContext().getContentResolver().notifyChange(uri, null);
         return count;
     }
 
     @Override
-    public int update(Uri uri, ContentValues contentValues, String s, String[] strings) {
+    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         db = mDBHelper.getWritableDatabase();
+        int count = 0;
 
-        if (uriMatcher.match(uri) == URI_STUDENTS_ID) {
-            s = s + " AND _id=" + uri.getLastPathSegment();
+        switch (uriMatcher.match(uri)) {
+            case URI_STUDENTS:
+                count = db.update(Student.TABLE_NAME, values, selection, selectionArgs);
+                break;
+            case URI_STUDENTS_ID:
+                String id = uri.getLastPathSegment();
+                if (selection.isEmpty()) {
+                    count = db.update(Student.TABLE_NAME, values, Student.COLUMN_ID + "=" + id, null);
+                } else {
+                    count = db.update(Student.TABLE_NAME, values, Student.COLUMN_ID + "=" + id + " and " + selection, selectionArgs);
+                }
+                break;
         }
 
-        int count = db.update("Students", contentValues, s, strings);
-
+        getContext().getContentResolver().notifyChange(uri, null);
         return count;
     }
 
     @Nullable
     @Override
     public String getType(Uri uri) {
+        switch (uriMatcher.match(uri)) {
+            case URI_STUDENTS:
+                return STUDENT_CONTENT_TYPE;
+            case URI_STUDENTS_ID:
+                return STUDENT_CONTENT_ITEM_TYPE;
+        }
+
         return null;
     }
 }
