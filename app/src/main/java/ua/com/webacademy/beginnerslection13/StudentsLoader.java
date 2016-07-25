@@ -6,7 +6,7 @@ import android.content.Context;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StudentsLoader extends AsyncTaskLoader<List<Student>> {
+public class StudentsLoader extends AsyncTaskLoader<ArrayList<Student>> {
 
     private DataBaseHelper mDBHelper;
 
@@ -17,7 +17,7 @@ public class StudentsLoader extends AsyncTaskLoader<List<Student>> {
     }
 
     @Override
-    public List<Student> loadInBackground() {
+    public ArrayList<Student> loadInBackground() {
         return mDBHelper.getStudents();
     }
 

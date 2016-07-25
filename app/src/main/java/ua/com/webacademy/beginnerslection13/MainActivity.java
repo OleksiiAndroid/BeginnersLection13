@@ -1,6 +1,7 @@
 package ua.com.webacademy.beginnerslection13;
 
 import android.app.LoaderManager;
+import android.app.ProgressDialog;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
@@ -13,7 +14,9 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Student>> {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<Student>> {
+
+    private ProgressDialog mDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,9 +27,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void OnClick(View v) {
         switch (v.getId()) {
             case R.id.button:
+                mDialog = new ProgressDialog(this);
+                mDialog.setMessage("Wait...");
+                mDialog.setCancelable(false);
+                mDialog.show();
+
                 getLoaderManager().initLoader(0, null, this);
                 break;
             case R.id.button2:
+                mDialog = new ProgressDialog(this);
+                mDialog.setMessage("Wait...");
+                mDialog.setCancelable(false);
+                mDialog.show();
+
                 getLoaderManager().restartLoader(0, null, this);
                 break;
             case R.id.button3:
@@ -41,17 +54,21 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     @Override
-    public Loader<List<Student>> onCreateLoader(int i, Bundle bundle) {
+    public Loader<ArrayList<Student>> onCreateLoader(int i, Bundle bundle) {
         return new StudentsLoader(this);
     }
 
     @Override
-    public void onLoadFinished(Loader<List<Student>> loader, List<Student> students) {
+    public void onLoadFinished(Loader<ArrayList<Student>> loader, ArrayList<Student> students) {
         Toast.makeText(this, String.valueOf(students.size()), Toast.LENGTH_SHORT).show();
+
+        if (mDialog != null && mDialog.isShowing()) {
+            mDialog.dismiss();
+        }
     }
 
     @Override
-    public void onLoaderReset(Loader<List<Student>> loader) {
+    public void onLoaderReset(Loader<ArrayList<Student>> loader) {
 
     }
 
