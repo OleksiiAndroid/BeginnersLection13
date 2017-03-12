@@ -9,7 +9,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 
 public class StudentsProvider extends ContentProvider {
 
@@ -113,7 +112,7 @@ public class StudentsProvider extends ContentProvider {
                 break;
             case URI_STUDENTS_ID:
                 String id = uri.getLastPathSegment();
-                if (selection.isEmpty()) {
+                if (selection == null || selection.isEmpty()) {
                     count = db.update(Student.TABLE_NAME, values, Student.COLUMN_ID + "=" + id, null);
                 } else {
                     count = db.update(Student.TABLE_NAME, values, Student.COLUMN_ID + "=" + id + " and " + selection, selectionArgs);
