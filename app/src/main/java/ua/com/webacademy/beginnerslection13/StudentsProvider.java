@@ -89,7 +89,7 @@ public class StudentsProvider extends ContentProvider {
                 break;
             case URI_STUDENTS_ID:
                 String id = uri.getLastPathSegment();
-                if (selection.isEmpty()) {
+                if (selection == null || selection.isEmpty()) {
                     count = db.delete(Student.TABLE_NAME, Student.COLUMN_ID + "=" + id, null);
                 } else {
                     count = db.delete(Student.TABLE_NAME, Student.COLUMN_ID + "=" + id + " and " + selection, selectionArgs);
