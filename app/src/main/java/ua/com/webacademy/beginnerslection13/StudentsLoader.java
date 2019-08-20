@@ -4,7 +4,6 @@ import android.content.AsyncTaskLoader;
 import android.content.Context;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class StudentsLoader extends AsyncTaskLoader<ArrayList<Student>> {
 

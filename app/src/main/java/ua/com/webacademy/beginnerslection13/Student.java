@@ -57,4 +57,9 @@ public class Student implements Parcelable {
             return new Student[size];
         }
     };
+
+    @Override
+    public String toString() {
+        return String.format("id:%s, %s %s, age:%s", id, FirstName, LastName, Age);
+    }
 }

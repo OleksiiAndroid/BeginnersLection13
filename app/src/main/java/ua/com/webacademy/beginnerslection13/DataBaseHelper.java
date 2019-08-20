@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
     public DataBaseHelper(Context context) {
-        super(context, "MyDB13.db", null, 1);
+        super(context, "MyDB14.db", null, 1);
     }
 
     @Override
@@ -20,11 +20,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 + Student.COLUMN_FIRST_NAME + " TEXT NOT NULL,"
                 + Student.COLUMN_LAST_NAME + " TEXT NOT NULL,"
                 + Student.COLUMN_AGE + " INTEGER NOT NULL);");
-
-        for (int i = 0; i < 20; i++) {
-            Student student = new Student("Ivan" + i, "Ivanov" + i, 20 + i);
-            insertStudent(student, db);
-        }
     }
 
     @Override
@@ -32,14 +27,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     }
 
-    public long insertStudent(Student student) {
-        SQLiteDatabase db = getWritableDatabase();
-
-        return insertStudent(student, db);
+    public boolean saveStudent(Student student) {
+        if (student.id == 0) {
+            return insertStudent(student) > 0;
+        } else {
+            return updateStudent(student) == 1;
+        }
     }
 
-    public long insertStudent(Student student, SQLiteDatabase db) {
+    private long insertStudent(Student student) {
         long id = 0;
+        SQLiteDatabase db = getWritableDatabase();
 
         try {
             ContentValues values = new ContentValues();
@@ -56,7 +54,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return id;
     }
 
-    public int updateStudent(Student student) {
+    private int updateStudent(Student student) {
         int count = 0;
         SQLiteDatabase db = getWritableDatabase();
 

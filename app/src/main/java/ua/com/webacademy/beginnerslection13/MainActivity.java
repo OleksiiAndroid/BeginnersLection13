@@ -3,14 +3,13 @@ package ua.com.webacademy.beginnerslection13;
 import android.app.LoaderManager;
 import android.app.ProgressDialog;
 import android.content.Loader;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
 
 import java.util.ArrayList;
 
@@ -19,12 +18,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private ProgressDialog mDialog;
 
     private SaveTask mSaveTask;
-    private GetTask mGetTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        getStudents(false);
     }
 
     @Override
@@ -34,49 +34,57 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if (mSaveTask != null) {
             mSaveTask.cancel(true);
         }
-        if (mGetTask != null) {
-            mGetTask.cancel(true);
+    }
+
+    private void getStudents(boolean restart) {
+        mDialog = new ProgressDialog(this);
+        mDialog.setMessage("Wait...");
+        mDialog.setCancelable(false);
+        mDialog.show();
+
+        if (restart) {
+            getLoaderManager().restartLoader(0, null, this);
+        } else {
+            getLoaderManager().initLoader(0, null, this);
         }
     }
 
-
     public void OnClick(View v) {
         switch (v.getId()) {
-            case R.id.button:
-                Student student = new Student("Ivan", "Ivanov", 22);
-
-                mSaveTask = new SaveTask();
-                mSaveTask.execute(student);
-                break;
-            case R.id.button2:
-                mGetTask = new GetTask();
-                mGetTask.execute(2l);
-                break;
-            case R.id.button3:
-                mDialog = new ProgressDialog(this);
-                mDialog.setMessage("Wait...");
-                mDialog.setCancelable(false);
-                mDialog.show();
-
-                getLoaderManager().initLoader(0, null, this);
-                break;
-            case R.id.button4:
-                mDialog = new ProgressDialog(this);
-                mDialog.setMessage("Wait...");
-                mDialog.setCancelable(false);
-                mDialog.show();
-
-                getLoaderManager().restartLoader(0, null, this);
-                break;
-            case R.id.button5:
-                ArrayList<String> contacts = getContacts();
-                Toast.makeText(this, String.format("Contacts count:%s", contacts.size()), Toast.LENGTH_LONG).show();
-                break;
-            case R.id.button6:
-                ArrayList<Student> students = getStudents();
-                Toast.makeText(this, String.format("Students count:%s", students.size()), Toast.LENGTH_LONG).show();
+            case R.id.buttonAdd:
+                editStudent(new Student());
                 break;
         }
+    }
+
+    private void editStudent(Student student) {
+        final AddEditStudentFragment fragment = AddEditStudentFragment.newInstance(student);
+
+        fragment.setStudentListener(new AddEditStudentFragment.StudentListener() {
+            @Override
+            public void save(Student student) {
+                saveStudent(student);
+            }
+
+            @Override
+            public void cancel() {
+                getStudents(false);
+            }
+        });
+
+        FragmentTransaction fTrans = getSupportFragmentManager().beginTransaction();
+        fTrans.replace(R.id.fragmentView, fragment);
+        fTrans.commit();
+    }
+
+    private void viewStudent(Student student) {
+        ViewStudentFragment fragment = ViewStudentFragment.newInstance(student);
+        fragment.show(getSupportFragmentManager(), "dialog");
+    }
+
+    private void saveStudent(Student student) {
+        mSaveTask = new SaveTask();
+        mSaveTask.execute(student);
     }
 
     @Override
@@ -86,7 +94,23 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<ArrayList<Student>> loader, ArrayList<Student> students) {
-        Toast.makeText(this, String.valueOf(students.size()), Toast.LENGTH_SHORT).show();
+        StudentsFragment fragment = StudentsFragment.newInstance(students);
+
+        fragment.setStudentsListener(new StudentsFragment.StudentsListener() {
+            @Override
+            public void edit(Student student) {
+                editStudent(student);
+            }
+
+            @Override
+            public void view(Student student) {
+                viewStudent(student);
+            }
+        });
+
+        FragmentTransaction fTrans = getSupportFragmentManager().beginTransaction();
+        fTrans.replace(R.id.fragmentView, fragment);
+        fTrans.commit();
 
         if (mDialog != null && mDialog.isShowing()) {
             mDialog.dismiss();
@@ -98,67 +122,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     }
 
-    private ArrayList<Student> getStudents() {
-        ArrayList<Student> students = new ArrayList<>();
-        Cursor cursor = null;
-
-        try {
-            Uri uri = Uri.parse("content://ua.com.webacademy.beginnerslection13/students");
-
-            cursor = getContentResolver().query(uri, null, null, null, null);
-
-            if (cursor.moveToFirst()) {
-                while (!cursor.isAfterLast()) {
-                    Student student = new Student();
-
-                    student.id = cursor.getLong(cursor.getColumnIndex("_id"));
-                    student.FirstName = cursor.getString(cursor.getColumnIndex("FirstName"));
-                    student.LastName = cursor.getString(cursor.getColumnIndex("LastName"));
-                    student.Age = cursor.getLong(cursor.getColumnIndex("Age"));
-
-                    students.add(student);
-
-                    cursor.moveToNext();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-
-        return students;
-    }
-
-    private ArrayList<String> getContacts() {
-        ArrayList<String> names = new ArrayList<>();
-        Cursor cursor = null;
-
-        try {
-            cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                    new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME}, null, null, null);
-
-            if (cursor.moveToFirst()) {
-                while (!cursor.isAfterLast()) {
-                    names.add(cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)));
-
-                    cursor.moveToNext();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-
-        return names;
-    }
-
-    class SaveTask extends AsyncTask<Student, Void, Long> {
+    class SaveTask extends AsyncTask<Student, Void, Boolean> {
 
         private ProgressDialog mDialog;
 
@@ -173,73 +137,32 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
 
         @Override
-        protected Long doInBackground(Student... params) {
-            long id = 0;
+        protected Boolean doInBackground(Student... params) {
+            Boolean result = false;
 
             try {
                 Student student = params[0];
 
                 DataBaseHelper helper = new DataBaseHelper(MainActivity.this);
-                id = helper.insertStudent(student);
+                result = helper.saveStudent(student);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return id;
+            return result;
         }
 
         @Override
-        protected void onPostExecute(Long result) {
+        protected void onPostExecute(Boolean result) {
             super.onPostExecute(result);
 
             if (mDialog != null && mDialog.isShowing()) {
                 mDialog.dismiss();
             }
 
-            Toast.makeText(MainActivity.this, "id:" + result, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    class GetTask extends AsyncTask<Long, Void, Student> {
-
-        private ProgressDialog mDialog;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-            mDialog = new ProgressDialog(MainActivity.this);
-            mDialog.setMessage("Wait...");
-            mDialog.setCancelable(false);
-            mDialog.show();
-        }
-
-        @Override
-        protected Student doInBackground(Long... params) {
-            Student student = null;
-
-            try {
-                long id = params[0];
-
-                DataBaseHelper helper = new DataBaseHelper(MainActivity.this);
-                student = helper.getStudent(id);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return student;
-        }
-
-        @Override
-        protected void onPostExecute(Student result) {
-            super.onPostExecute(result);
-
-            if (mDialog != null && mDialog.isShowing()) {
-                mDialog.dismiss();
-            }
-
-            if (result == null) {
-                Toast.makeText(MainActivity.this, "Student not found", Toast.LENGTH_SHORT).show();
+            if (result) {
+                getStudents(true);
             } else {
-                Toast.makeText(MainActivity.this, result.FirstName, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Error saving student", Toast.LENGTH_LONG).show();
             }
         }
     }
